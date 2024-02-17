@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Map example</title>
+</head>
+
+<body>
+    <!-- We will put our React component inside this div. -->
+    <div id="root"></div>
+
+    <!-- Load React & Babel -->
+    <!-- Note: when deploying, replace "development.js" with "production.min.js". -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/babel-standalone@6.26.0/babel.min.js"></script>
+
+    <!-- Load our React component. -->
+    <script type="text/babel">
+
+        function RestList() {
+
+            const [repos, setRepos] = React.useState([]);
+            const [language, setLanguage] = React.useState('');
+            const [showSearch, setShowSearch] = React.useState(false);
+
+            const getRepos = () => {
+                fetch(`https://api.github.com/search/repositories?q=${language}`)
+                    .then(response => {
+                        if (!response.ok)
+                            throw new Error(response.statusText)
+
+                        return response.json()
+                    })
+                    .then(responseData => {
+                        setRepos(responseData.items)
+                        setShowSearch(true)
+                    })
+                    .catch(error => {
+                        console.error(error)
+                        setShowSearch(false)
+                    })
+            }
+
+            const handleSubmit = (event) => {
+                event.preventDefault();
+                getRepos();
+            }
+
+            return (
+                <div>
+                    <h1>Repositories</h1>
+                    <form onSubmit={handleSubmit}>
+                        <input
+                            type="text"
+                            value={language}
+                            onChange={(event) => setLanguage(event.target.value)} />
+                        <button type="submit">Search</button>
+                    </form>
+                    {showSearch &&
+                        <table>
+                            <thead>
+                                <tr><th>Name</th><th>URL</th></tr>
+                            </thead>
+                            <tbody>
+                                {
+                                    repos.map((repo) =>
+                                        <tr key={repo.id}>
+                                            <td>{repo.full_name}</td>
+                                            <td>{repo.html_url}</td>
+                                        </tr>
+                                    )
+                                }
+                            </tbody>
+
+                        </table>
+                    }
+                </div>
+            );
+        }
+        
+        const root = ReactDOM.createRoot(document.getElementById("root"));
+        root.render(<RestList />);
+    </script>
+</body>
+
+</html>

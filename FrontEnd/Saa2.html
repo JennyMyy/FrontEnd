@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Front End Development / React</title>
+</head>
+
+<body>
+    <!-- We will put our React component inside this div. -->
+    <div id="root"></div>
+
+    <!-- Load React & Babel -->
+    <!-- Note: when deploying, replace "development.js" with "production.min.js". -->
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/babel-standalone@6.26.0/babel.min.js"></script>
+
+    <!-- Load our React component. -->
+    <script type="text/babel">
+
+        function Weather() {
+
+            const [weather, setWeather] = React.useState({});
+            const [loading, setLoading] = React.useState(false);
+            const [city, setCity] = React.useState('');
+            const [showWeather, setShowWeather] = React.useState(false);
+
+            const fetchWeather = () => {
+                setLoading(true);
+                setShowWeather(false);
+                console.log("Haetaan dataa...");
+                fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&APPID=1026b70f0966595c9bd159b839fa4369`)
+                    .then(response => {
+                        if (!response.ok)
+                            throw new Error("Virhe hakuprosessissa " + response.statusText);
+
+                        return response.json();
+                    })
+                    .then(responseData => {
+                        setWeather(responseData);
+                        setShowWeather(true);
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        setShowWeather(false);
+                    })
+                    .finally(() => setLoading(false));
+            };
+
+            const handleSubmit = (event) => {
+                event.preventDefault();
+                fetchWeather();
+            }
+
+            return (
+                <div>
+                    <form onSubmit={handleSubmit}>
+                        <input
+                            type="text"
+                            placeholder="City"
+                            value={city}
+                            onChange={(event) => setCity(event.target.value)}/>
+                        <button type="submit">Get Weather</button>
+                    </form>
+                    {showWeather && <p>Temperature: {weather.main && (((weather.main.temp) - 273.15).toFixed(2))} Celsius</p>}
+                    {showWeather && <p>Weather: {weather.weather && weather.weather[0].main}</p>}
+                    {showWeather && <p>{weather.weather && weather.weather[0].icon && <img src={`https://openweathermap.org/img/w/${weather.weather[0].icon}.png`} alt="Weather icon" />}</p>}
+                </div>
+            );
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById("root"));
+        root.render(<div><Weather /></div>);
+
+    </script>
+</body>
+
+</html>
